@@ -1,6 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
+import appConfig from './app.config';
 import databaseConfig from './database.config';
 import { envValidationSchema } from './env.validation';
 
@@ -11,7 +12,7 @@ import { envValidationSchema } from './env.validation';
       isGlobal: true,
       cache: true,
 
-      load: [databaseConfig],
+      load: [appConfig, databaseConfig],
 
       validationSchema: envValidationSchema,
     }),

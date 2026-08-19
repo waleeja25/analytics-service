@@ -2,7 +2,7 @@ import { Controller, Logger } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
 
 import { AnalyticsService } from './analytics.service';
-import type { OrderCreatedEvent } from './events/order-created.event';
+import { OrderCreatedEvent } from './events/order-created.event';
 
 @Controller()
 export class AnalyticsController {

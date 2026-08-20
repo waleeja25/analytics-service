@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 
 import appConfig from './app.config';
 import databaseConfig from './database.config';
+import { kafkaConfig } from './kafka.config';
 import { envValidationSchema } from './env.validation';
 
 @Global()
@@ -12,7 +13,7 @@ import { envValidationSchema } from './env.validation';
       isGlobal: true,
       cache: true,
 
-      load: [appConfig, databaseConfig],
+      load: [appConfig, databaseConfig, kafkaConfig],
 
       validationSchema: envValidationSchema,
     }),

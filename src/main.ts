@@ -1,12 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-
+import { MicroserviceOptions, RpcException } from '@nestjs/microservices';
 import { ValidationPipe } from '@nestjs/common';
-import { RpcException } from '@nestjs/microservices';
 import { ValidationError } from 'class-validator';
 
 import { AppModule } from './app.module';
+import { getKafkaOptions } from './kafka';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -15,18 +14,7 @@ async function bootstrap() {
   const port = configService.get<number>('app.port');
 
   const kafkaServer = app.connectMicroservice<MicroserviceOptions>(
-    {
-      transport: Transport.KAFKA,
-      options: {
-        client: {
-          clientId: 'analytics-service',
-          brokers: [process.env.KAFKA_BROKER!],
-        },
-        consumer: {
-          groupId: 'analytics-service-group',
-        },
-      },
-    },
+    getKafkaOptions(configService),
     { inheritAppConfig: true },
   );
 
@@ -40,6 +28,7 @@ async function bootstrap() {
     new ValidationPipe({
       transform: true,
       whitelist: true,
+      forbidNonWhitelisted: true,
       exceptionFactory: (errors: ValidationError[]) =>
         new RpcException(
           errors

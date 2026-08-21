@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -8,6 +8,8 @@ import { EVENT_TYPES } from './constants/event-type.constants';
 
 @Injectable()
 export class AnalyticsService {
+  private readonly logger = new Logger(AnalyticsService.name);
+
   constructor(
     @InjectRepository(DailyOrderStat)
     private readonly dailyOrderStatRepository: Repository<DailyOrderStat>,
@@ -52,6 +54,8 @@ export class AnalyticsService {
       orderId: event.orderId,
       eventType: EVENT_TYPES.ORDER_CREATED,
     });
+
+    this.logger.log(`Successfully processed order ${event.orderId}`);
   }
 
   async handleOrderDeleted(event: OrderDeletedEvent): Promise<void> {
@@ -90,5 +94,7 @@ export class AnalyticsService {
       orderId: event.orderId,
       eventType: EVENT_TYPES.ORDER_DELETED,
     });
+
+    this.logger.log(`Successfully processed order ${event.orderId}`);
   }
 }

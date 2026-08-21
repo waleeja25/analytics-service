@@ -3,12 +3,15 @@ import { ConfigService } from '@nestjs/config';
 import { MicroserviceOptions, RpcException } from '@nestjs/microservices';
 import { ValidationPipe } from '@nestjs/common';
 import { ValidationError } from 'class-validator';
+import { createAppLogger } from '@microservices/microservice-common';
 
 import { AppModule } from './app.module';
 import { getKafkaOptions } from './kafka';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: createAppLogger(),
+  });
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>('app.port');

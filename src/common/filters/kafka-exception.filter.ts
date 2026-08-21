@@ -1,14 +1,38 @@
-import { Catch, Logger, RpcExceptionFilter } from '@nestjs/common';
-import { Observable, of } from 'rxjs';
+import {
+  ArgumentsHost,
+  Catch,
+  Logger,
+  RpcExceptionFilter,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { KafkaContext, RpcException } from '@nestjs/microservices';
+import { from, Observable, of } from 'rxjs';
+
+import { sendToDeadLetter } from '../../kafka';
 
 @Catch()
 export class KafkaExceptionFilter implements RpcExceptionFilter {
   private readonly logger = new Logger(KafkaExceptionFilter.name);
 
-  catch(exception: unknown): Observable<unknown> {
+  constructor(private readonly configService: ConfigService) {}
+
+  catch(exception: unknown, host: ArgumentsHost): Observable<unknown> {
     this.logger.error(
       `Failed to process Kafka message: ${exception instanceof Error ? exception.stack : String(exception)}`,
     );
-    return of(undefined);
+
+    if (!(exception instanceof RpcException)) {
+      return of(undefined);
+    }
+
+    const context = host.switchToRpc().getContext<KafkaContext>();
+
+    return from(
+      sendToDeadLetter(
+        context,
+        this.configService.getOrThrow<string>('kafka.deadLetterTopic'),
+        exception,
+      ),
+    );
   }
 }

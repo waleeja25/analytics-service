@@ -13,17 +13,6 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const port = configService.get<number>('app.port');
 
-  const kafkaServer = app.connectMicroservice<MicroserviceOptions>(
-    getKafkaOptions(configService),
-    { inheritAppConfig: true },
-  );
-
-  app.enableShutdownHooks();
-
-  kafkaServer.status.subscribe((status) => {
-    console.log(`Kafka consumer status: ${status}`);
-  });
-
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
@@ -37,6 +26,17 @@ async function bootstrap() {
         ),
     }),
   );
+
+  const kafkaServer = app.connectMicroservice<MicroserviceOptions>(
+    getKafkaOptions(configService),
+    { inheritAppConfig: true },
+  );
+
+  app.enableShutdownHooks();
+
+  kafkaServer.status.subscribe((status) => {
+    console.log(`Kafka consumer status: ${status}`);
+  });
 
   await app.startAllMicroservices();
 

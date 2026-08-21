@@ -5,10 +5,11 @@ import { AnalyticsService } from './analytics.service';
 import { AnalyticsController } from './analytics.controller';
 import { DailyOrderStat } from './entities';
 import { ProcessedOrder } from './entities';
+import { KafkaRetryService } from '../kafka';
 
 @Module({
   imports: [TypeOrmModule.forFeature([DailyOrderStat, ProcessedOrder])],
   controllers: [AnalyticsController],
-  providers: [AnalyticsService],
+  providers: [AnalyticsService, KafkaRetryService],
 })
 export class AnalyticsModule {}

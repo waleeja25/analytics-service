@@ -10,4 +10,5 @@ export const envValidationSchema = Joi.object({
   DB_NAME: Joi.string().required(),
 
   KAFKA_BROKER: Joi.string().required(),
+  KAFKA_DEAD_LETTER_TOPIC: Joi.string().required(),
 });

@@ -30,7 +30,7 @@ export class AnalyticsService {
       return;
     }
 
-    const date = new Date().toISOString().split('T')[0];
+    const date = event.createdAt.split('T')[0];
 
     let dailyStats = await this.dailyOrderStatRepository.findOne({
       where: {
@@ -70,7 +70,7 @@ export class AnalyticsService {
       return;
     }
 
-    const date = new Date().toISOString().split('T')[0];
+    const date = event.createdAt.split('T')[0];
 
     let dailyStats = await this.dailyOrderStatRepository.findOne({
       where: {

@@ -9,10 +9,6 @@ Consumes `order.created`/`order.deleted` events from Kafka (published by `order-
 - **Malformed message** (fails validation): sent straight to the `KAFKA_DEAD_LETTER_TOPIC` topic, no retries.
 - **Handler failure** on an otherwise-valid message: retried with exponential backoff via `KafkaRetryService`, then dead-lettered if retries are exhausted.
 
-## Known limitation
-
-Revenue is bucketed by the date the message was *processed*, not the date the order was actually created — a delayed or retried message can land in the wrong day's total.
-
 ## Stack
 
 NestJS, `kafkajs` / `@nestjs/microservices` (Kafka), TypeORM, MySQL, `class-validator`

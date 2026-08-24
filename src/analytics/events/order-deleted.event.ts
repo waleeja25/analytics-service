@@ -1,6 +1,7 @@
-import { IsInt, IsNumber, IsPositive } from 'class-validator';
+import { IsDateString, IsInt, IsNumber, IsPositive } from 'class-validator';
 
 export class OrderDeletedEvent {
   @IsInt() @IsPositive() orderId!: number;
   @IsNumber() @IsPositive() totalAmount!: number;
+  @IsDateString() createdAt!: string;
 }

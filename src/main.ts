@@ -6,7 +6,7 @@ import { ValidationError } from 'class-validator';
 import { createAppLogger } from '@microservices/microservice-common';
 
 import { AppModule } from './app.module';
-import { getKafkaOptions } from './kafka';
+import { getKafkaOptions, setupDeadLetterTopic } from './kafka';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -15,6 +15,11 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>('app.port');
+
+  await setupDeadLetterTopic(
+    [configService.getOrThrow<string>('kafka.broker')],
+    configService.getOrThrow<string>('kafka.deadLetterTopic'),
+  );
 
   app.useGlobalPipes(
     new ValidationPipe({

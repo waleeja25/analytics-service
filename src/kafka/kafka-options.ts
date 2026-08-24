@@ -14,6 +14,9 @@ export function getKafkaOptions(
       consumer: {
         groupId: 'analytics-service-group',
       },
+      run: {
+        autoCommit: false,
+      },
     },
   };
 }

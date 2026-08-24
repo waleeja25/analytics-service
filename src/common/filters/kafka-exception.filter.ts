@@ -8,7 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { KafkaContext, RpcException } from '@nestjs/microservices';
 import { from, Observable, of } from 'rxjs';
 
-import { sendToDeadLetter } from '../../kafka';
+import { deadLetterAndCommit } from '../../kafka';
 
 @Catch()
 export class KafkaExceptionFilter implements RpcExceptionFilter {
@@ -28,10 +28,11 @@ export class KafkaExceptionFilter implements RpcExceptionFilter {
     const context = host.switchToRpc().getContext<KafkaContext>();
 
     return from(
-      sendToDeadLetter(
+      deadLetterAndCommit(
         context,
         this.configService.getOrThrow<string>('kafka.deadLetterTopic'),
         exception,
+        this.logger,
       ),
     );
   }

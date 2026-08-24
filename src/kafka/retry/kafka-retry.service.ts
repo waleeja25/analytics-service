@@ -2,8 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { KafkaContext } from '@nestjs/microservices';
 
-import { KAFKA_RETRY } from './kafka.constants';
-import { sendToDeadLetter } from './kafka-dead-letter.util';
+import { KAFKA_RETRY } from '../constants';
+import { deadLetterAndCommit } from './kafka-dead-letter.util';
+import { commitOffset } from './kafka-offset';
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -23,6 +24,7 @@ export class KafkaRetryService {
     for (let attempt = 0; attempt <= KAFKA_RETRY.MAX_ATTEMPTS; attempt++) {
       try {
         await handler();
+        await commitOffset(context);
         return;
       } catch (error) {
         if (attempt === KAFKA_RETRY.MAX_ATTEMPTS) {
@@ -30,10 +32,14 @@ export class KafkaRetryService {
             `Message ${identifier} failed after ${KAFKA_RETRY.MAX_ATTEMPTS} attempts. Sending to dead letter topic.`,
             error instanceof Error ? error.stack : error,
           );
-          await sendToDeadLetter(
+
+          await deadLetterAndCommit(
             context,
             this.configService.getOrThrow<string>('kafka.deadLetterTopic'),
             error,
+            this.logger,
+            identifier,
+            attempt,
           );
           return;
         }

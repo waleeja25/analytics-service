@@ -4,14 +4,30 @@ Consumes `order.created`/`order.deleted` events from Kafka (published by `order-
 
 ## Message handling
 
-- Every processed `(orderId, eventType)` pair is recorded in a `processed_orders` table before/after applying it, so a redelivered message is detected and skipped instead of double-counting revenue — this matters because Kafka only guarantees *at-least-once* delivery, not exactly-once.
+- Every processed `(orderId, eventType)` pair is recorded in a `processed_orders` table, so a redelivered message is detected and skipped instead of double-counting revenue.
 - Payloads are validated with `class-validator` DTOs before reaching the handler.
-- **Malformed message** (fails validation): sent straight to the `KAFKA_DEAD_LETTER_TOPIC` topic, no retries.
-- **Handler failure** on an otherwise-valid message: retried with exponential backoff via `KafkaRetryService`, then dead-lettered if retries are exhausted.
+- Offset commits are fully manual (`autoCommit: false`): the offset only advances after the handler succeeds, or after a failed message is successfully published to the dead-letter topic. If that dead-letter publish itself fails, the offset is left uncommitted so the message is redelivered rather than lost.
+- **Malformed message**: sent straight to the dead-letter topic, no retries.
+- **Handler failure**: retried with exponential backoff, then dead-lettered if retries are exhausted. The dead-letter topic is created in code on startup.
 
 ## Stack
 
 NestJS, `kafkajs` / `@nestjs/microservices` (Kafka), TypeORM, MySQL, `class-validator`
+
+## Folder structure
+
+```
+src/
+├── analytics/               # controller, service, entities, events, event-type constants
+├── kafka/
+│   ├── kafka-options.ts       # consumer connection config
+│   ├── kafka-dlq.ts           # creates the dead-letter topic on startup
+│   ├── constants/
+│   └── retry/                  # retry service, dead-letter + offset-commit utils
+├── common/filters/              # KafkaExceptionFilter
+├── config/
+└── health/
+```
 
 ## Running locally
 
